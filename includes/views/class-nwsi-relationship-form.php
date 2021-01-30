@@ -121,7 +121,8 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
           // we don't need to create inputs for other object IDs
           if ( !$sf_field["createable"]
               || $sf_field["deprecatedAndHidden"]
-              //|| $sf_field["type"] == "reference" 
+              // dont show "required" reference fields (these may not be setable - need ot be dependant objects) but DO show non-required fields so they can be overwritten (e.g. opportunuty record type)
+              || ($sf_field["type"] == "reference" && !$sf_field["nillable"] && !$sf_field["defaultedOnCreate"])
               ) {
             continue;
           }
