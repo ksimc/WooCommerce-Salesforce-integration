@@ -103,10 +103,30 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
             }
           }
 
-        } else if ( $relationship->from_object === "Order Product" ) {
+        } else if ( strtolower($relationship->from_object) === "product" ) {
           $i = 0;
           foreach( $products as $product ) {
             $values = $this->get_values( $connections, $product );
+            $this->set_dependencies( $relationship->to_object, $values,
+            json_decode( $relationship->required_sf_objects ), $response_ids, $relationship->from_object, $i );
+
+            if ( !empty( $values ) ) {
+              $response = $this->send_to_salesforce( $relationship->to_object, $values,
+              json_decode( $relationship->unique_sf_fields ), $response_ids, $i );
+
+              if ( !$response["success"] ) {
+                $is_success = false;
+                array_push( $error_message, $response["error_message"] );
+                break; // no need to continue
+              }
+            }
+            $i++;
+          }
+        } else if ( strtolower($relationship->from_object) === "order_item" ) {
+          $i = 0;
+          $order_items = $order->get_items();
+          foreach( $order_items as $item ) {
+            $values = $this->get_values( $connections, $item );
             $this->set_dependencies( $relationship->to_object, $values,
             json_decode( $relationship->required_sf_objects ), $response_ids, $relationship->from_object, $i );
 
