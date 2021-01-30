@@ -123,7 +123,7 @@
     var parent = $( this ).parent();
     var name = $( this ).attr( "name" );
 
-    if ( selectedVal.indexOf( "custom" ) > -1 ) {
+    if ( selectedVal.indexOf( "custom" ) > -1 && selectedVal.indexOf( "customer" ) == -1 ) {
       // set hidden source input
       $( "input[name='" + name + "-source']" ).val( "custom" );
       // create custom field
@@ -136,6 +136,8 @@
         parent.append( "<br/><input type='" + inputType + "' name='" + name + "-custom' />" );
       }
     } else {
+      // set hidden source input
+      $( "input[name='" + name + "-source']" ).val( "woocommerce" );
       // delete custom input if user selects another option
       parent.find( "input[name='" + name + "-custom']" ).remove();
       parent.find( "br" ).remove();

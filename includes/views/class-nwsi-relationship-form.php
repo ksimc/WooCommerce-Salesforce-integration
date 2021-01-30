@@ -121,7 +121,8 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
           // we don't need to create inputs for other object IDs
           if ( !$sf_field["createable"]
               || $sf_field["deprecatedAndHidden"]
-              || $sf_field["type"] == "reference" ) {
+              //|| $sf_field["type"] == "reference" 
+              ) {
             continue;
           }
         ?>
@@ -430,7 +431,7 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
       $select_element .= "<option value=''>None</option>";
 
       if ( !empty( $type ) ) {
-        if ( in_array( $type, array( "string", "double", "integer", "url", "phone", "textarea" ) ) ) {
+        if ( in_array( $type, array( "string", "double", "integer", "url", "phone", "textarea", "reference" ) ) ) {
           array_push( $fields, array( "name" => "custom-value", "label" => "Custom value" ) );
         } else if ( $type == "date" ) {
           array_push( $fields, array( "name" => "custom-current-date", "label" => "Current Date" ) );
@@ -443,7 +444,7 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
       foreach( $fields as $field ) {
         // field check
         if ( $ignore_refrences ) {
-          if ( !$field["createable"] || $field["deprecatedAndHidden"] || $field["type"] == "reference" ) {
+          if ( !$field["createable"] || $field["deprecatedAndHidden"] ) { //|| $field["type"] == "reference" ) {
             continue;
           }
         }

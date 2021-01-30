@@ -200,7 +200,7 @@ if ( !class_exists( "NWSI_Settings" ) ) {
               <select id="nwsi-rel-to-sf">
                 <?php foreach( $sf_objects["sobjects"] as $sf_object ): ?>
                   <?php if( !$sf_object["deprecatedAndHidden"] && $sf_object["createable"] && $sf_object["updateable"] && $sf_object["deletable"] ): ?>
-                    <option value="<?php echo $sf_object["name"]; ?>"><?php echo $sf_object["label"]; ?></option>
+                    <option value="<?php echo $sf_object["name"]; ?>"><?php echo $sf_object["label"] . " (" . $sf_object["keyPrefix"] . ")"; ?></option>
                   <?php endif; ?>
                 <?php endforeach; ?>
               </select>

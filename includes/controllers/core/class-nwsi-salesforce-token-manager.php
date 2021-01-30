@@ -199,7 +199,8 @@ if ( !class_exists( "NWSI_Salesforce_Token_Manager" ) ) {
      * @return mixed - false if failed or string
      */
     public function load_access_token() {
-      return $this->cryptor->decrypt( get_option( "woocommerce_nwsi_access_token" ), true );
+      $token = get_option( "woocommerce_nwsi_access_token" );
+      return $this->cryptor->decrypt($token , true );
     }
 
     /**

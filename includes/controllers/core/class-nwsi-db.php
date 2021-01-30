@@ -240,7 +240,9 @@ if ( !class_exists( "NWSI_DB" ) ) {
             "to"      => $data[ "sfField-" . $i ]
           );
 
-          if ( strpos( $data[ "wcField-" . $i ], "custom" ) !== false ) {
+          $is_custom_field = strpos( $data[ "wcField-" . $i ], "custom" );
+          $is_customer_field = strpos( $data[ "wcField-" . $i ], "customer" );
+          if ( $is_custom_field !== false && $is_customer_field === false ) {
             $temp["from"] = "custom";
             if ( $temp["type"] == "boolean" ) {
               $value = explode( "-", $data[ "wcField-" . $i ] )[1];
@@ -440,7 +442,13 @@ if ( !class_exists( "NWSI_DB" ) ) {
 
       $query = "SELECT DISTINCT ( meta_key ) FROM " . $wpdb->prefix . "woocommerce_order_itemmeta";
 
-      return $wpdb->get_results( $query );
+      $result_set = $wpdb->get_results( $query );
+
+      $to_return = array();
+      foreach ($result_set as $result) {
+        array_push($to_return, $result->meta_key);
+      }
+      return $to_return;
     }
   }
 }

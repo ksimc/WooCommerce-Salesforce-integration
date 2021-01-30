@@ -81,7 +81,7 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
         // get relationship connections
         $connections = json_decode( $relationship->relationships );
 
-        if ( $relationship->from_object === "Order" ) {
+        if ( strtolower($relationship->from_object) === "order" ) {
           // process order
           $values = $this->get_values( $connections, $order );
           $this->set_dependencies(
@@ -228,8 +228,13 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
           } else if ( in_array( $connection->type, array( "double", "currency", "number", "percent" ) )
             && !is_numeric( $value ) ) {
             $value = null;
-          } else if ( $connection->type == "email" && !filter_var( $value, FILTER_VALIDATE_EMAIL) === false ) {
-            $value = null;
+          } else if ( $connection->type == "email" ) {
+            // sanitise the email
+            $value = filter_var($value, FILTER_SANITIZE_EMAIL);
+            // then check it's a valid email
+            if ( !filter_var( $value, FILTER_VALIDATE_EMAIL) ) {
+              $value = null;
+            }
           } else if ( $connection->type == "date" ) {
             if ( !$this->is_correct_date_format( $value ) ) {
               try {
@@ -243,12 +248,25 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
               }
             }
           } else if ( !is_string( $value ) ) {
-            $value = null;
+            if ( is_numeric( $value ) ) {
+                // numbers can be saved into string objects (e.g. IDs)
+                $value = strval($value); 
+            }
+            else {
+              $value = null;
+            }
           }
 
         } else if ( $connection->source == "sf-picklist" || $connection->source == "custom" ) {
           if ( $connection->type == "date" && $connection->value == "current" ) {
             $value = date( "Y-m-d" );
+          } elseif ($connection->type == "boolean" && $connection->source == "custom") {
+            $temp_value = explode( "-", $connection->from )[1];
+            if ( !is_null( $temp_value ) ) {
+              $value = $temp_value;
+            } else {
+              $value = ($connection->value === 'true');
+            }
           } else {
             $value = $connection->value;
           }
