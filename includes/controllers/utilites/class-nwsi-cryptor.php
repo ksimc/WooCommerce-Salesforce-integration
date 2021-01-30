@@ -12,7 +12,6 @@ if ( !class_exists( "NWSI_Cryptor" ) ) {
     * Class constructor, use NWSI_KEY defined in wp-config.php or hardcoded one
     */
     function __construct() {
-      require_once( NWSI_DIR_PATH . "includes/libs/crypto/Crypto.php" );
       // require_once( NWSI_DIR_PATH . "includes/libs/crypto/Crypto.php" );
       // require_once( NWSI_DIR_PATH . "includes/libs/crypto/Key.php" );
       // require_once( NWSI_DIR_PATH . "includes/libs/crypto/Core.php" );
