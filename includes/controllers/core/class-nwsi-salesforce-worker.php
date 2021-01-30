@@ -23,6 +23,7 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
       parent::__construct();
 
       require_once( NWSI_DIR_PATH . "includes/models/class-nwsi-order-model.php" );
+      require_once( NWSI_DIR_PATH . "includes/models/class-nwsi-order-item-model.php" );
       require_once( NWSI_DIR_PATH . "includes/models/class-nwsi-product-model.php" );
       require_once( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
 
@@ -126,7 +127,8 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
           $i = 0;
           $order_items = $order->get_items();
           foreach( $order_items as $item ) {
-            $values = $this->get_values( $connections, $item );
+            $this_item = new NWSI_Order_Item_Model($item);
+            $values = $this->get_values( $connections, $this_item );
             $this->set_dependencies( $relationship->to_object, $values,
             json_decode( $relationship->required_sf_objects ), $response_ids, $relationship->from_object, $i );
 
