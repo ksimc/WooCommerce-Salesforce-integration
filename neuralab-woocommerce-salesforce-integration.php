@@ -164,6 +164,16 @@ if ( nwsi_is_woocommerce_active() ) {
         }
       }
 
+      public static function deactivate() {
+        delete_option( "woocommerce_nwsi_settings" );
+        delete_option( "woocommerce_nwsi_access_token" );
+        delete_option( "woocommerce_nwsi_refresh_token" );
+        delete_option( "woocommerce_nwsi_instance_url" );
+        delete_option( "woocommerce_nwsi_automatic_order_sync" );
+        delete_option( "woocommerce_nwsi_connection_hash" );
+        delete_option( "woocommerce_nwsi_login_url" );
+      }
+
       /**
        * Delete plugin tables and related WP options.
        */
@@ -231,6 +241,9 @@ if ( nwsi_is_woocommerce_active() ) {
 
   register_activation_hook( __FILE__, array( "NWSI_Main", "install" ) );
   register_uninstall_hook( __FILE__, array( "NWSI_Main", "uninstall" ) );
+
+  // plugin deactivation
+  register_deactivation_hook( __FILE__, array( "NWSI_Main", "deactivate" ) );
 
   add_action( "plugins_loaded", array( "NWSI_Main", "get_instance" ), 0 );
 } else {
