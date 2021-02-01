@@ -37,7 +37,7 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
     */
     public function get_property_keys() {
       $data      = $this->get_data();
-      $data_keys = $this->get_data_keys();
+      $data_keys = array_merge( array( 'id' ), $this->get_data_keys());
 
       // keys which hold subarrays in $data
       $parent_keys = array( "shipping", "billing" );
