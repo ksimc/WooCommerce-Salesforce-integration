@@ -279,7 +279,7 @@ if ( !class_exists( "NWSI_Settings" ) ) {
           $temp["id"]           = $relationship->id;
           $temp["date-created"] = date( $date_time_format, strtotime( $relationship->date_created ) );
           $temp["date-updated"] = date( $date_time_format, strtotime( $relationship->date_updated ) );
-          $temp["active"]       = ( intval( $relationship->active ) == 1 ) ? "Yes" : "No";
+          $temp["active"]       = ( intval( $relationship->active ) == 1 ) ? "Yes" : ((intval( $relationship->active ) == 2) ? "Read-only" : "No" );
           $temp["relationship"] = "<a href='" . admin_url("admin.php", "https")
           . "?page=wc-settings&tab=integration&section=nwsi"
           . "&rel=existing&key=" . $relationship->hash_key . "'>" . "<b>"

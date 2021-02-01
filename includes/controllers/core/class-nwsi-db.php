@@ -353,6 +353,16 @@ if ( !class_exists( "NWSI_DB" ) ) {
     }
 
     /**
+    * Makes the relationships read-only. 
+    * This is useful for finding dependant object ids
+    * @param array $ids - relationships ids
+    * @return boolean
+    */
+    public function make_relationships_read_only_by_id( $ids ) {
+      return $this->set_active_attribute( 2, $ids );
+    }
+
+    /**
     * Set active attribute to given value.
     *
     * @param int   $value

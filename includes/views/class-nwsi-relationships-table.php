@@ -78,6 +78,7 @@ if ( !class_exists( "NWSI_Relationships_Table" ) ) {
         "delete"     => __( "Delete", "woocommerce-integration-nwsi" ),
         "activate"   => __( "Activate", "woocommerce-integration-nwsi" ),
         "deactivate" => __( "Deactivate", "woocommerce-integration-nwsi" ),
+        "make_read_only" => __( "Make read only", "woocommerce-integration-nwsi" ),
       );
     }
 
@@ -112,6 +113,9 @@ if ( !class_exists( "NWSI_Relationships_Table" ) ) {
           break;
         case "deactivate":
           $db->deactivate_relationships_by_id( $bulk );
+          break;
+        case "make_read_only":
+          $db->make_relationships_read_only_by_id( $bulk );
           break;
         default:
           break;
