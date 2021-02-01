@@ -211,6 +211,11 @@ if ( !class_exists( "NWSI_DB" ) ) {
             "label" => $parts[1],
             "id"    => $parts[2]
           );
+
+          if ( array_key_exists( "createRequiredSfObjectIfMissing-" . $i, $data ) ) {
+            $required_object["create_if_missing"] = $data["createRequiredSfObjectIfMissing-" . $i];
+          }
+
           array_push( $required_sf_objects, $required_object );
         }
         $i++;
