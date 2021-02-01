@@ -328,7 +328,6 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
           <thead>
             <th><?php _e( "Active", "woocommerce-integration-nwsi" ); ?></th>
             <th><?php _e( "Object", "woocommerce-integration-nwsi" ); ?></th>
-            <th><?php _e( "Create if missing", "woocommerce-integration-nwsi" ); ?></th>
           </thead>
           <tbody>
             <?php foreach( $required_sf_objects as $required_sf_object ): ?>
@@ -337,10 +336,6 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
                 <td>
                 <?php
                   $this->display_required_objects_select_element( "requiredSfObject-" . $counter, $sf_objects, $required_sf_object->name, $required_sf_object->id );
-                ?>
-                </td>
-                <td><input name="createRequiredSfObjectIfMissing-<?php echo $counter; ?>" type="checkbox" <?php if (array_key_exists("create_if_missing", $required_sf_object) && $required_sf_object->create_if_missing==="on"){echo("checked");} ?> >
-                <?php
                   $counter++;
                 ?>
                 </td>

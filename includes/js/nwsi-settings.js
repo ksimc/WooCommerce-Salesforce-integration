@@ -83,17 +83,8 @@
       .html( defaultSelectElement.html() );
 
     output += $( newSelect )[0].outerHTML;
-    output += "</td><td>";
-    
-    // second checkbox
-    var secondCheckbox = document.createElement( "input" );
-    $( secondCheckbox )
-      .attr( "name", "createRequiredSfObjectIfMissing-" + String( selectNum ) )
-      .attr( "type", "checkbox" );
-
-    output += $( secondCheckbox )[0].outerHTML;
     output += "</td></tr>";
-    
+
     container.append( output );
 
   } );
