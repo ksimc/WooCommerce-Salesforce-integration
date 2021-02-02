@@ -20,6 +20,30 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
      */
     private $api_version = "v37.0";
 
+    public function get_existing_object( string $name, array $values, array $unique_sf_fields = array(), bool $no_error_handling = false ) {
+      $response["success"] = false;
+      // check if object with given unique_sf_field values exists
+      if ( !empty( $unique_sf_fields ) ) {
+        $get_values = array();
+        foreach( $unique_sf_fields as $unique_sf_field ) {
+          if ( array_key_exists( $unique_sf_field, $values ) && !empty( $values[ $unique_sf_field ] ) ) {
+            $get_values[ $unique_sf_field ] = $values[ $unique_sf_field ];
+          }
+        }
+
+        if ( !empty( $get_values ) ) {
+          $get_object_response = $this->get_object( $name, $get_values );
+          // if object with the same values of unique field/s exists, return its ID
+          if ( $get_object_response["success"] ) {
+            return $get_object_response;
+          }
+        }
+      }
+
+      // no keys to search on, or no matching object found
+      return $response;
+    }
+
     /**
      * Creates object if it doesn't already exists
      *

@@ -94,13 +94,16 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
           if ( !empty( $values ) ) {
             $response = $this->send_to_salesforce(
               $relationship->to_object, $values,
-              json_decode( $relationship->unique_sf_fields ), $response_ids
+              json_decode( $relationship->unique_sf_fields ), 
+              $response_ids,
+              null,
+              intval($relationship->active) === 2               // is read only
             );
 
-            if ( !$response["success"] ) {
+            if ( intval($relationship->active) === 1 && !$response["success"] ) {
               $is_success = false;
               array_push( $error_message, $response["error_message"] );
-              break; // no need to continue
+              break; // no need to continue as this write object failed
             }
           }
 
@@ -113,9 +116,9 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
 
             if ( !empty( $values ) ) {
               $response = $this->send_to_salesforce( $relationship->to_object, $values,
-              json_decode( $relationship->unique_sf_fields ), $response_ids, $i );
+              json_decode( $relationship->unique_sf_fields ), $response_ids, $i, intval($relationship->active) === 2 );
 
-              if ( !$response["success"] ) {
+              if ( intval($relationship->active) === 1 && !$response["success"] ) {
                 $is_success = false;
                 array_push( $error_message, $response["error_message"] );
                 break; // no need to continue
@@ -134,9 +137,9 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
 
             if ( !empty( $values ) ) {
               $response = $this->send_to_salesforce( $relationship->to_object, $values,
-              json_decode( $relationship->unique_sf_fields ), $response_ids, $i );
+              json_decode( $relationship->unique_sf_fields ), $response_ids, $i, intval($relationship->active) === 2 );
 
-              if ( !$response["success"] ) {
+              if ( intval($relationship->active) === 1 && !$response["success"] ) {
                 $is_success = false;
                 array_push( $error_message, $response["error_message"] );
                 break; // no need to continue
@@ -196,10 +199,14 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
     * @param int     $id_index - in case we've multiple sf objects of the same type
     * @return array - [success, error_message]
     */
-    private function send_to_salesforce( $to_object, $values, $unique_sf_fields, &$response_ids, $id_index = null ) {
+    private function send_to_salesforce( $to_object, $values, $unique_sf_fields, &$response_ids, $id_index = null, $is_read_only = false ) {
       $response = array();
 
-      $sf_response = $this->sf->create_object( $to_object, $values, $unique_sf_fields );
+      if ($is_read_only) {
+        $sf_response = $this->sf->get_existing_object( $to_object, $values, $unique_sf_fields );
+      } else {
+        $sf_response = $this->sf->create_object( $to_object, $values, $unique_sf_fields );
+      }
 
       // obtain SF response ID if any
       if ( $sf_response["success"] ) {
@@ -323,7 +330,12 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
             $values[ $required_sf_object->id ] = $response_ids[ $required_sf_object->name ][ $id_index ];
           }
         } else {
-          $values[ $required_sf_object->id ] = $response_ids[ $required_sf_object->name ];
+          // need to check if dependant object actually exists: if not, dont add to the values array
+          // (object may not exist in target db so no need to add reference)
+          // (will be up to the user to parse error messages and ensure all dependancies are set to read-write (not read only))
+          if (array_key_exists($required_sf_object->name, $response_ids)) {
+            $values[ $required_sf_object->id ] = $response_ids[ $required_sf_object->name ];
+          }
         }
       }
     }

@@ -299,7 +299,7 @@ if ( !class_exists( "NWSI_DB" ) ) {
       global $wpdb;
 
       $query  = "SELECT from_object, to_object, relationships, active, required_sf_objects, unique_sf_fields ";
-      $query .= "FROM $this->rel_table_name WHERE active=1";
+      $query .= "FROM $this->rel_table_name WHERE active>0";
 
       return $wpdb->get_results( $query );
     }
