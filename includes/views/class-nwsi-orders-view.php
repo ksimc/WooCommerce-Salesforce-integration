@@ -30,7 +30,7 @@ if ( !class_exists( "NWSI_Orders_View" ) ) {
       $nonce_name   = isset( $_POST["nwsi_sync_product_nonce"] ) ? $_POST["nwsi_sync_product_nonce"] : "";
       $nonce_action = "nwsi_sync_product";
 
-      if ( !$_POST["salesforce_sync_request"] ) {
+      if ( !array_key_exists("salesforce_sync_request", $_POST) || !$_POST["salesforce_sync_request"] ) {
         return;
       }
       if ( !isset( $nonce_name ) || !wp_verify_nonce( $nonce_name, $nonce_action ) ) {
