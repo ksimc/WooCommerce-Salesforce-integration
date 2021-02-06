@@ -1,12 +1,12 @@
 <?php
 /**
-* Plugin Name: Neuralab WooCommerce SalesForce Integration
-* Plugin URI: https://github.com/Neuralab/WooCommerce-Salesforce-integration
+* Plugin Name: Hujjat WooCommerce SalesForce Integration
+* Plugin URI: https://github.com/ksimc/WooCommerce-Salesforce-integration
 * Description: Syncing engine for all sort of datasets and configurations.
-* Version: 0.9.2
-* Author: Neuralab
+* Version: 0.9.3
+* Author: Ali Panju (forked from Neuralab)
 * Author URI: https://neuralab.net
-* Developer: matej@neuralab
+* Developer: ali@panju.com
 * Text Domain: woocommerce-integration-nwsi
 *
 * WC requires at least: 3.3
@@ -77,6 +77,11 @@ if ( nwsi_is_woocommerce_active() ) {
       private $worker;
 
       /**
+       * @var HUJJAT_Account_Sync_Worker
+       */
+      private $hujjat_account_sync_worker;
+
+      /**
        * Class constructor, initialize essential classes and hooks.
        */
       protected function __construct() {
@@ -84,10 +89,12 @@ if ( nwsi_is_woocommerce_active() ) {
 
         require_once( "includes/controllers/core/class-nwsi-salesforce-object-manager.php" );
         require_once( "includes/controllers/core/class-nwsi-salesforce-worker.php" );
+        require_once( "includes/controllers/hujjat/class-hujjat-account-sync-worker.php" );
         require_once( "includes/controllers/utilites/class-nwsi-utility.php" );
         require_once( "includes/views/class-nwsi-settings.php" );
 
         add_filter( "woocommerce_integrations", array( $this, "add_integration_section" ) );
+        add_filter("nwsi_include_order_keys_from_database", array( $this, "should_include_order_keys_from_database" ));
 
         if ( is_admin() ) {
           require_once( "includes/views/class-nwsi-orders-view.php" );
@@ -104,7 +111,13 @@ if ( nwsi_is_woocommerce_active() ) {
         // add_action( "woocommerce_checkout_order_processed", array( $this, "process_order" ), 10, 1 );
         add_action( "woocommerce_thankyou", array( $this, "process_order" ), 90, 1 );
 
+        $hujjat_account_sync_worker = new HUJJAT_Account_Sync_Worker();
+        $hujjat_account_sync_worker->init();
       }
+
+      /** 
+       * Set up a seperate 
+       */
 
       /**
        * Define all the constants used in plugin.
@@ -131,6 +144,10 @@ if ( nwsi_is_woocommerce_active() ) {
         if ( !empty( get_option( "woocommerce_nwsi_automatic_order_sync" ) ) ) {
           $this->worker->process_order( $order_id );
         }
+      }
+
+      public function should_include_order_keys_from_database() {
+        return true;
       }
 
       /**

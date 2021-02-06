@@ -212,8 +212,13 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
       if ( $sf_response["success"] ) {
         $response["success"] = true;
         if ( is_null( $id_index ) ) {
-          $response_ids[ $to_object ] = $sf_response["id"];
-          // echo $to_object . ": " . $response_ids[ $to_object ] . "\n";
+          if (!array_key_exists($to_object, $response_ids)) {
+            // only add to the response list if NOT already there - this way, multiple objects
+            // can be added or searched (if read only relationship) and only the first successful
+            // save or find will be used. 
+            $response_ids[ $to_object ] = $sf_response["id"];
+            // echo $to_object . ": " . $response_ids[ $to_object ] . "\n";
+          }
         } else {
           $response_ids[ $to_object ][ $id_index ] = $sf_response["id"];
           // echo $to_object . ", " . $id_index . ": " . $response_ids[ $to_object ][ $id_index ] . "\n";
@@ -253,7 +258,13 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
           $value = $item->get( $connection->from );
           // validation
           if ( $connection->type == "boolean" && !is_bool( $value ) ) {
-            $value = null;
+            if ($value === "Yes") {
+              $value = true;
+            } else if ($value === "No") {
+              $value = false;
+            } else {
+              $value = null;
+            }
           } else if ( in_array( $connection->type, array( "double", "currency", "number", "percent" ) )
             && !is_numeric( $value ) ) {
             $value = null;
@@ -351,20 +362,20 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
       for ( $i = 0; $i < sizeof( $relationships ); $i++ ) {
         $required_objects = json_decode( $relationships[$i]->required_sf_objects );
         foreach( $required_objects as $required_object ) {
-          for ( $j = 0; $j < sizeof( $relationships ); $j++ ) {
-            if ( $i == $j ) {
+          for ( $j = 0; $j < sizeof( $prioritized_relationships ); $j++ ) {
+            if ( $relationships[$i]->id === $prioritized_relationships[$j]->id ) {
               continue;
             }
-            if ( $required_object->name == $relationships[$j]->to_object ) {
-              $new_position = $this->get_relationship_index_in_array( $prioritized_relationships, $required_object->name );
-              if ( $new_position != -1 ) { // required object exists in array
-                $current_position = $this->get_relationship_index_in_array( $prioritized_relationships, $relationships[$i]->to_object );
-                if ( $new_position > $current_position ) { // object that depends is located before in array
-
-                  $temp = array_splice( $prioritized_relationships, $current_position, 1 );
-                  array_splice( $prioritized_relationships, $new_position, 0, $temp );
+            if ( $required_object->name == $prioritized_relationships[$j]->to_object ) {
+              //$current_position_of_required_object = $this->get_relationship_index_in_array( $prioritized_relationships, $prioritized_relationships[$j]->id );
+              //if ( $current_position_of_required_object != -1 ) { // required object exists in array
+                $position_of_dependant_relationship_in_prioritized_array = $this->get_relationship_index_in_array( $prioritized_relationships, $relationships[$i]->id );
+                if ( $j > $position_of_dependant_relationship_in_prioritized_array ) { // object that is required is located after in prioritized array
+                  // extract required object
+                  $temp = array_splice( $prioritized_relationships, $j, 1 );
+                  array_splice( $prioritized_relationships, $position_of_dependant_relationship_in_prioritized_array, 0, $temp );
                 }
-              }
+              //}
             }
           }
         } // foreach
@@ -373,20 +384,19 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
     }
 
     /**
-     * Return position of object in relationships array with the same to_object
+     * Return position of object in relationships array with the same id field
      * value or -1 in case of no matching object
      * @param array   $relationships
-     * @param string  $to_object
+     * @param string  $id
      * @return int
      */
-    private function get_relationship_index_in_array( $relationships, $to_object ) {
+    private function get_relationship_index_in_array( $relationships, $id ) {
       for( $i = 0; $i < sizeof( $relationships ); $i++ ) {
-        if ( $relationships[$i]->to_object == $to_object ) {
+        if ( $relationships[$i]->id == $id ) {
           return $i;
         }
       }
       return -1;
     }
-
   }
 }

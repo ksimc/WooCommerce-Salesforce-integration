@@ -298,8 +298,8 @@ if ( !class_exists( "NWSI_DB" ) ) {
     public function get_active_relationships() {
       global $wpdb;
 
-      $query  = "SELECT from_object, to_object, relationships, active, required_sf_objects, unique_sf_fields ";
-      $query .= "FROM $this->rel_table_name WHERE active>0";
+      $query  = "SELECT id, from_object, to_object, relationships, active, required_sf_objects, unique_sf_fields ";
+      $query .= "FROM $this->rel_table_name WHERE active > 0";
 
       return $wpdb->get_results( $query );
     }
@@ -402,7 +402,7 @@ if ( !class_exists( "NWSI_DB" ) ) {
       $keys = array();
       foreach ($keys_raw as $key_container) {
         $pos = strpos( $key_container[0], "_" );
-        if ( $pos !== false ) {
+        if ( $pos !== false && $pos === 0 ) {
           array_push( $keys, substr_replace( $key_container[0], "", $pos, strlen( "_" ) ) );
         } else {
           array_push( $keys, $key_container[0] );
@@ -419,9 +419,10 @@ if ( !class_exists( "NWSI_DB" ) ) {
     public function get_order_meta_keys() {
       global $wpdb;
 
-      $query  = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id=(";
+      $query  = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id IN (";
       $query .= "SELECT ID FROM " . $wpdb->prefix . "posts WHERE post_type='shop_order' ";
-      $query .= "ORDER BY ID DESC )";
+      $query .= "ORDER BY ID DESC ) ";
+      $query .= "AND meta_key NOT LIKE \"\_%\"";
 
       $keys_raw = $wpdb->get_results( $query, ARRAY_N );
       return $this->filter_meta_keys( $keys_raw );

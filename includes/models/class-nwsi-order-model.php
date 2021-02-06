@@ -37,7 +37,7 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
     */
     public function get_property_keys() {
       $data      = $this->get_data();
-      $data_keys = array_merge( array( 'id' ), $this->get_data_keys());
+      $data_keys = array_merge( array( 'id', 'WC_order_url' ), $this->get_data_keys());
 
       // keys which hold subarrays in $data
       $parent_keys = array( "shipping", "billing" );
@@ -54,14 +54,15 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
 
       $include_db_keys = false;
       if ( has_filter( "nwsi_include_order_keys_from_database" ) ) {
-        $include_db_keys = (bool) apply_filters( "nwsi_include_order_keys_from_database" );
+        $include_db_keys = (bool) apply_filters( "nwsi_include_order_keys_from_database", "" );
       }
 
       if ( $include_db_keys ) {
         // combine with order meta keys from the database
         require_once( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
         $db   = new NWSI_DB();
-        $keys = array_merge( $data_keys, $db->get_order_meta_keys() );
+        $meta_keys = $db->get_order_meta_keys();
+        $keys = array_merge( $data_keys, $meta_keys );
       } else {
         $keys = $data_keys;
       }
@@ -87,6 +88,18 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
       $value = null;
       if ( method_exists( $this, "get_" . $property_name ) ) {
         $value = $this->{"get_" . $property_name}();
+      }
+
+      if ($value === NULL) {
+        $db   = new NWSI_DB();
+        $meta_keys = $db->get_order_meta_keys();
+        if (in_array($property_name, $meta_keys)) {
+          $value = $this->get_meta($property_name);
+        }
+      }
+
+      if ($property_name === "WC_order_url") {
+        $value = admin_url("post.php?post=".$this->get_id()."&action=edit", "https");
       }
 
       if ( has_filter( "nwsi_get_order_property_key_" . $property_name ) ) {
