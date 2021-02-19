@@ -77,9 +77,9 @@ if ( nwsi_is_woocommerce_active() ) {
       private $worker;
 
       /**
-       * @var HUJJAT_Account_Sync_Worker
+       * @var HUJJAT_Account_Async_Worker
        */
-      private $hujjat_account_sync_worker;
+      private $hujjat_account_async_worker;
 
       /**
        * Class constructor, initialize essential classes and hooks.
@@ -89,7 +89,7 @@ if ( nwsi_is_woocommerce_active() ) {
 
         require_once( "includes/controllers/core/class-nwsi-salesforce-object-manager.php" );
         require_once( "includes/controllers/core/class-nwsi-salesforce-worker.php" );
-        require_once( "includes/controllers/hujjat/class-hujjat-account-sync-worker.php" );
+        require_once( "includes/controllers/hujjat/class-hujjat-account-async-worker.php");
         require_once( "includes/controllers/utilites/class-nwsi-utility.php" );
         require_once( "includes/views/class-nwsi-settings.php" );
 
@@ -111,8 +111,7 @@ if ( nwsi_is_woocommerce_active() ) {
         // add_action( "woocommerce_checkout_order_processed", array( $this, "process_order" ), 10, 1 );
         add_action( "woocommerce_thankyou", array( $this, "process_order" ), 90, 1 );
 
-        $hujjat_account_sync_worker = new HUJJAT_Account_Sync_Worker();
-        $hujjat_account_sync_worker->init();
+        $this->hujjat_account_async_worker = new HUJJAT_Account_Async_Worker();
       }
 
       /** 

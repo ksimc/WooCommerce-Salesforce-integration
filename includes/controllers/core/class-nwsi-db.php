@@ -461,5 +461,15 @@ if ( !class_exists( "NWSI_DB" ) ) {
       }
       return $to_return;
     }
+
+    public function check_if_processed_stripe_event($event_id) {
+      global $wpdb;
+
+      $query = "SELECT * FROM " . $wpdb->prefix . "postmeta WHERE meta_key='stripe_session_checkout_completed_event_id' AND meta_value LIKE '" . $event_id ."'";
+
+      $result_set = $wpdb->get_results( $query );
+
+      return count($result_set) > 0 ;
+    }
   }
 }
