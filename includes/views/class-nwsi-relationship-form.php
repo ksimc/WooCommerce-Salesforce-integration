@@ -297,7 +297,7 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
       foreach( $sf_object_description["fields"] as $sf_field ) {
         if ( $sf_field["type"] == "reference" && $sf_field["createable"] && !$sf_field["defaultedOnCreate"] ) {
           // user is by default included
-          if( $sf_field["referenceTo"][0] != $to && $sf_field["referenceTo"][0] != "User" ) {
+          if( $sf_field["referenceTo"][0] != "User" ) {
               array_push( $sf_objects, array(
                 "name"  => $sf_field["referenceTo"][0],
                 "label" => $sf_field["referenceTo"][0],

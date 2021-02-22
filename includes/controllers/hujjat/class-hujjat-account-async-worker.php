@@ -127,7 +127,7 @@ if ( !class_exists( "HUJJAT_Account_Async_Worker" ) ) {
                   // Now we create the order
                   $order = wc_create_order();
                   $order->add_meta_data("stripe_session_checkout_completed_event_id", $event_id, true);
-                  
+
                   // The add_product() function below is located in /plugins/woocommerce/includes/abstracts/abstract_wc_order.php
                   $fund_name_found = strpos($description, "Online (quick) Donation to Sadqa fund");         /*** MAGIC STRING ***/
                   if ($fund_name_found !== false && $fund_name_found >= 0) {
