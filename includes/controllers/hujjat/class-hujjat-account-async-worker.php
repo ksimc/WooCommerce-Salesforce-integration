@@ -158,6 +158,7 @@ if ( !class_exists( "HUJJAT_Account_Async_Worker" ) ) {
                   $order->calculate_totals();
                   $order->payment_complete( $charge_id );
                   $order->save();
+                  do_action( 'woocommerce_thankyou', $order->get_id() );
                 }
               }
                   
