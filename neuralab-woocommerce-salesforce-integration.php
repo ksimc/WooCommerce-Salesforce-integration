@@ -145,6 +145,12 @@ if ( nwsi_is_woocommerce_active() ) {
         }
       }
 
+      public function get_sf_payments_for_user( $user_id ) {
+        // could do user type check here?
+        // returns payment list/array to be rendered by the view
+        return $this->worker->get_sf_payments_for_user($user_id);
+      }
+
       public function should_include_order_keys_from_database() {
         return true;
       }
@@ -178,6 +184,9 @@ if ( nwsi_is_woocommerce_active() ) {
             }
           }
         }
+
+        // make new endpoints available
+        flush_rewrite_rules();
       }
 
       public static function deactivate() {

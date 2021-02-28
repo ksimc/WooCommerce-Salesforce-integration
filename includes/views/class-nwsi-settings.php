@@ -71,6 +71,7 @@ if ( !class_exists( "NWSI_Settings" ) ) {
      */
     private function process_requests() {
       if ( !array_key_exists( "rel", $_GET ) ) {
+        
         if ( !empty( $_POST["save"] ) ) {
           $this->update_additional_settings($_POST);
 
@@ -124,8 +125,14 @@ if ( !class_exists( "NWSI_Settings" ) ) {
     private function update_additional_settings( $data ) {
       // update automatic order sync option
       if ( empty( $data["automatic_order_sync"] ) ) {
+        write_log ( 'Switching off woocommerce_nwsi_automatic_order_sync');
+        write_log ( $data );
+
         update_option( "woocommerce_nwsi_automatic_order_sync", "0" );
       } else {
+        write_log ( 'Switching ON woocommerce_nwsi_automatic_order_sync');
+        write_log ( $data );
+
         update_option( "woocommerce_nwsi_automatic_order_sync", "1" );
       }
       // update login url
@@ -394,5 +401,15 @@ if ( !class_exists( "NWSI_Settings" ) ) {
       );
     }
 
+  }
+}
+
+if ( ! function_exists('write_log')) {
+  function write_log ( $log )  {
+     if ( is_array( $log ) || is_object( $log ) ) {
+        error_log( print_r( $log, true ) );
+     } else {
+        error_log( wp_get_current_user()->data->user_login .' ('. wp_get_current_user()->data->ID . '): ' . $log );
+     }
   }
 }

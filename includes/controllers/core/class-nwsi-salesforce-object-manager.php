@@ -34,9 +34,9 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
         if ( !empty( $get_values ) ) {
           $get_object_response = $this->get_object( $name, $get_values );
           // if object with the same values of unique field/s exists, return its ID
-          if ( $get_object_response["success"] ) {
+          //if ( $get_object_response["success"] ) {
             return $get_object_response;
-          }
+          //}
         }
       }
 
@@ -111,6 +111,30 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
       return $response;
     }
 
+
+    public function get_payments_for_sf_user( string $sf_user_id ) {
+      $response = array();
+      //$sf_response = $this->get_objects("Id, Payments.Id, Payments.Date, Payments.Amount, Gift_Aid__c", "Opportunity", array("npsp__Primary_Contact__c" => $sf_user_id));
+      $query = 'SELECT Id, CloseDate, RecordTypeId, Gift_Aid__c, Amount, '
+      . '('
+      . 'SELECT Id, npsp__Amount__c, npsp__Percent__c, npsp__General_Accounting_Unit__r.Name'
+      . ' FROM npsp__Allocations__r'
+      . '), '
+      . '('
+      . 'SELECT Id, npe01__Payment_Amount__c, npe01__Payment_Date__c, npe01__Payment_Method__c'
+      . ' FROM npe01__OppPayment__r'
+      . ')'
+      . ' FROM Opportunity'
+      . " WHERE npsp__Primary_Contact__c = '" . $sf_user_id . "'";
+
+      $sf_response = $this->run_query($query);
+
+      if ( isset( $sf_response["done"] ) && $sf_response["done"] ) {
+        $response = $sf_response["records"];
+      }
+      return $response;
+    }
+
     /**
      * Return object's ID that has provided values.
      *
@@ -119,7 +143,20 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
      * @return array
      */
     private function get_object( string $name, array $values ) {
-      $query = "SELECT Id FROM " . $name . " WHERE ";
+      $sf_response = $this->get_objects("Id", $name, $values);
+      $response = array();
+
+      if ( isset( $sf_response["done"] ) && $sf_response["done"] && count( $sf_response["records"] ) > 0 ) {
+        $response["success"] = true;
+        $response["id"]      = $sf_response["records"][0]["Id"];
+      } else {
+        $response = $this->set_response_error_message( $sf_response );
+      }
+      return $response;
+    }
+
+    private function get_objects(string $columns, string $name, array $values ) {
+      $query = "SELECT " . $columns . " FROM " . $name . " WHERE ";
 
       $where_query_part = "";
       foreach ( $values as $key => $val ) {
@@ -140,17 +177,22 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
       }
       $query .= $where_query_part;
 
+      // $url = $this->instance_url . "/services/data/" . $this->api_version . "/query?q=" . urlencode( $query );
+      // $sf_response = $this->get_response( $url );
+      $sf_response = $this->run_query($query);
+      return $sf_response;
+    }
+
+    private function run_query($query) {
       $url = $this->instance_url . "/services/data/" . $this->api_version . "/query?q=" . urlencode( $query );
       $sf_response = $this->get_response( $url );
-      $response = array();
 
-      if ( isset( $sf_response["done"] ) && $sf_response["done"] && count( $sf_response["records"] ) > 0 ) {
-        $response["success"] = true;
-        $response["id"]      = $sf_response["records"][0]["Id"];
-      } else {
-        $response = $this->set_response_error_message( $sf_response );
-      }
-      return $response;
+      $error_response = $this->get_error_status( $sf_response );
+      if ( $error_response == "solved" ) {
+        $response = $this->get_response( $url );
+      } 
+
+      return $sf_response;
     }
 
     /**

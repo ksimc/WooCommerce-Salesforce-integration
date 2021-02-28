@@ -128,14 +128,22 @@ if ( !class_exists( "HUJJAT_Account_Async_Worker" ) ) {
                   $order = wc_create_order();
                   $order->add_meta_data("stripe_session_checkout_completed_event_id", $event_id, true);
 
-                  // The add_product() function below is located in /plugins/woocommerce/includes/abstracts/abstract_wc_order.php
-                  $fund_name_found = strpos($description, "Online (quick) Donation to Sadqa fund");         /*** MAGIC STRING ***/
-                  if ($fund_name_found !== false && $fund_name_found >= 0) {
-                      $order->add_product( get_product(41), 1); // This is an existing SIMPLE product
-                  } else {
-                      // dont know what this is - add to general fund
-                      $order->add_product( get_product(20), 1); // This is an existing SIMPLE product
+                  $product = null;
+                  try {
+                    $product_id = intval($payment_intent->metadata->wc_product_id);
+                    $product = get_product($product_id);
+
+                    // set price from stripe value
+                    $product->set_price($amount);
+
+                    // add to order (qnty = 1)
+                    $order->add_product( $product, 1 );
+
+                  } catch (Exception $e) {
+                    // failed to get user id (not a logged in user, or not a number in the metadata string)
+                    $break_for_debug = true;
                   }
+
                   $order->set_address( $address, 'billing' );
 
                   // set the stipe transaction ID
@@ -173,8 +181,8 @@ if ( !class_exists( "HUJJAT_Account_Async_Worker" ) ) {
       }
 
       public function hujjat_register_new_user(){
-        $instance_of_main = NWSI_Main::get_instance();
-        $worker = $instance_of_main->worker;
+        // $instance_of_main = NWSI_Main::get_instance();
+        // $worker = $instance_of_main->worker;
       }
   
       public function hujjat_add_members_area_endpoint() {
@@ -192,8 +200,65 @@ if ( !class_exists( "HUJJAT_Account_Async_Worker" ) ) {
       }
   
       public function hujjat_members_area_content() {
-        echo '<h3>Hujjat members area</h3><br/><p>Welcome to the Hujjat members area. Over time we will be adding more functionality regarding the membership data we hold linked to this hujjat.org account.</p>';
-        echo do_shortcode( ' /* your shortcode here */ ' );
+        echo '<h3>Hujjat members area</h3><br/><p>Welcome to the Hujjat members area. Over time we will be adding more functionality regarding the membership data we hold linked to this hujjat.org account.</p><p>This area is still <b>in development</b> - please disregard information on this page until this notice is removed.</p>';
+        
+        $instance_of_main = NWSI_Main::get_instance();
+        $opportunities = $instance_of_main->get_sf_payments_for_user(get_current_user_id());
+
+        // render payments
+        echo '<p>We have ' . count($opportunities) . '  recorded payments for you in our database.';
+
+        if (count($opportunities) > 0) {
+          echo '<table>';
+
+          echo '<tr> <td>Date</td> <td>Amount</td> <td>Gift Aid</td> <td>Method</td> <td>Payment Type</td> <td>Funds</td> </tr>';
+
+          foreach ($opportunities as $opportunity) {
+            foreach ($opportunity['npe01__OppPayment__r']['records'] as $payment) {
+              $funds = "";
+              if ($opportunity['npsp__Allocations__r']) {
+                foreach($opportunity['npsp__Allocations__r']['records'] as $line_item) {
+                  if (strlen($funds) > 0) {
+                    $funds .= "; ";
+                  }
+                  
+                  $funds .= $line_item["npsp__General_Accounting_Unit__r"]["Name"];
+
+                  if ($opportunity['npsp__Allocations__r']['totalSize'] > 1) {
+                    $funds .= '(' . $line_item["npsp__Percent__c"] . '%)';
+                  }
+                }
+              }
+              echo '<tr>'
+              .'<td>'. $payment['npe01__Payment_Date__c'] .'</td>'
+              .'<td>'. $payment['npe01__Payment_Amount__c'] .'</td>'
+              .'<td>'. $opportunity['Gift_Aid__c'] .'</td>'
+              .'<td>'. $payment['npe01__Payment_Method__c'] .'</td>'
+              .'<td>'. $this->convert_opportunity_record_type($opportunity['RecordTypeId']) .'</td>'
+              .'<td>'. $funds .'</td>'
+              .'</tr>';
+            }
+          }
+
+          echo '</table>';
+        }
+        
+      }
+
+      private function convert_opportunity_record_type($record_type) {
+        if ($record_type === "0123z000000fGP8AAM") {
+          return "Donation";
+        } else {
+          return "Membership";
+        } 
+      }
+
+      /**
+       * Plugin install action.
+       * Flush rewrite rules to make our custom endpoint available.
+       */
+      public static function install() {
+        flush_rewrite_rules();
       }
 
     }   

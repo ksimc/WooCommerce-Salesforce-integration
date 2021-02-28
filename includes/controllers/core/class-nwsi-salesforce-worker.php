@@ -398,5 +398,25 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
       }
       return -1;
     }
+
+
+    // Payments section
+
+    public function get_sf_payments_for_user( $user_id ) {
+  
+      $to_return = array();
+      
+      $sf_response = $this->sf->get_existing_object( "Contact", array("WP_User_ID2__c" => $user_id), array("WP_User_ID2__c") );
+      
+      if ( $sf_response["success"] ) {
+        $sf_user_id = $sf_response["id"];
+
+        $payments = $this->sf->get_payments_for_sf_user($sf_user_id);
+
+        $to_return = $payments;
+      }
+  
+      return $to_return;
+    }
   }
 }
