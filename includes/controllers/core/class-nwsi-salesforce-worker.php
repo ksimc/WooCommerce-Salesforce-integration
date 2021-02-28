@@ -310,6 +310,16 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
           } else {
             $value = $connection->value;
           }
+
+          /* MASSIVE HACK FOR PAYMENT METHOD */
+          if ($connection->to === "Payment_Method__c") {
+            $method = $item->get("payment_method");
+            if ($method == "paypal") {
+              $value = "Online - Paypal";
+            } elseif ($method == "stripe") {
+              $value = 'Online - Stripe';
+            }
+          }
         }
 
         if ( !empty( $value ) ) {

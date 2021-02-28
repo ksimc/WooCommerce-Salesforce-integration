@@ -43,15 +43,15 @@ if ( !class_exists( "HUJJAT_Account_Async_Worker" ) ) {
 
         // ------------------
         // 3. Insert the new endpoint into the My Account menu
-        add_filter( 'woocommerce_account_menu_items', array ($this, 'hujjat_add_members_area_link_my_account' ) );
+        //add_filter( 'woocommerce_account_menu_items', array ($this, 'hujjat_add_members_area_link_my_account' ) );
 
         // ------------------
         // 4. Add content to the new endpoint
-        add_action( 'woocommerce_account_hujjat-member-area_endpoint', array ($this, 'hujjat_members_area_content' ) );
+        //add_action( 'woocommerce_account_hujjat-member-area_endpoint', array ($this, 'hujjat_members_area_content' ) );
         // Note: add_action must follow 'woocommerce_account_{your-endpoint-slug}_endpoint' format
 
         // hook into new user registration to write user-id to Salesforce
-        add_action('user_register', array ($this, 'hujjat_register_new_user' ));
+        //add_action('user_register', array ($this, 'hujjat_register_new_user' ));
       }
 
       private function listen_for_stripe_webhook_events() {
