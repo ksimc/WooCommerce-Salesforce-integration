@@ -73,11 +73,12 @@ if ( !class_exists( "NWSI_Settings" ) ) {
       if ( !array_key_exists( "rel", $_GET ) ) {
         
         if ( !empty( $_POST["save"] ) ) {
-          $this->update_additional_settings($_POST);
 
           if ( array_key_exists( "woocommerce_nwsi_consumer_secret", $_POST )
             && array_key_exists( "woocommerce_nwsi_consumer_key", $_POST ) ) {
 
+            $this->update_additional_settings($_POST);
+            
             $redirect_uri = $this->sf->redirect_to_salesforce(
               $_POST["woocommerce_nwsi_consumer_key"],
               $_POST["woocommerce_nwsi_consumer_secret"]
@@ -86,6 +87,7 @@ if ( !class_exists( "NWSI_Settings" ) ) {
             if ( !empty( $redirect_uri ) ) {
               header( "Location: " . $redirect_uri );
             }
+
           }
         }
 
