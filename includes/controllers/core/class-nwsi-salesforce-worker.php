@@ -78,80 +78,89 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
       $order    = new NWSI_Order_Model( $order_id );
       $products = $this->get_products_from_order( $order );
 
-      foreach( $relationships as $relationship ) {
-        // get relationship connections
-        $connections = json_decode( $relationship->relationships );
+      // before proceeding, check that the order has a value
+      if ($order->data["total"] !== "0.00")
+      {
+        foreach( $relationships as $relationship ) {
+          // get relationship connections
+          $connections = json_decode( $relationship->relationships );
 
-        if ( strtolower($relationship->from_object) === "order" ) {
-          // process order
-          $values = $this->get_values( $connections, $order );
-          $this->set_dependencies(
-            $relationship->to_object, $values,
-            json_decode( $relationship->required_sf_objects ),
-            $response_ids, $relationship->from_object
-          );
-
-          if ( !empty( $values ) ) {
-            $response = $this->send_to_salesforce(
+          if ( strtolower($relationship->from_object) === "order" ) {
+            // process order
+            $values = $this->get_values( $connections, $order );
+            $this->set_dependencies(
               $relationship->to_object, $values,
-              json_decode( $relationship->unique_sf_fields ), 
-              $response_ids,
-              null,
-              intval($relationship->active) === 2               // is read only
+              json_decode( $relationship->required_sf_objects ),
+              $response_ids, $relationship->from_object
             );
 
-            if ( intval($relationship->active) === 1 && !$response["success"] ) {
-              $is_success = false;
-              array_push( $error_message, $response["error_message"] );
-              break; // no need to continue as this write object failed
-            }
-          }
-
-        } else if ( strtolower($relationship->from_object) === "product" ) {
-          $i = 0;
-          foreach( $products as $product ) {
-            $values = $this->get_values( $connections, $product );
-            $this->set_dependencies( $relationship->to_object, $values,
-            json_decode( $relationship->required_sf_objects ), $response_ids, $relationship->from_object, $i );
-
             if ( !empty( $values ) ) {
-              $response = $this->send_to_salesforce( $relationship->to_object, $values,
-              json_decode( $relationship->unique_sf_fields ), $response_ids, $i, intval($relationship->active) === 2 );
+              $response = $this->send_to_salesforce(
+                $relationship->to_object, $values,
+                json_decode( $relationship->unique_sf_fields ), 
+                $response_ids,
+                null,
+                intval($relationship->active) === 2               // is read only
+              );
 
               if ( intval($relationship->active) === 1 && !$response["success"] ) {
                 $is_success = false;
                 array_push( $error_message, $response["error_message"] );
-                break; // no need to continue
+                break; // no need to continue as this write object failed
               }
             }
-            $i++;
-          }
-        } else if ( strtolower($relationship->from_object) === "order_item" ) {
-          $i = 0;
-          $order_items = $order->get_items();
-          foreach( $order_items as $item ) {
-            $this_item = new NWSI_Order_Item_Model($item);
-            $values = $this->get_values( $connections, $this_item );
-            $this->set_dependencies( $relationship->to_object, $values,
-            json_decode( $relationship->required_sf_objects ), $response_ids, $relationship->from_object, $i );
 
-            if ( !empty( $values ) ) {
-              $response = $this->send_to_salesforce( $relationship->to_object, $values,
-              json_decode( $relationship->unique_sf_fields ), $response_ids, $i, intval($relationship->active) === 2 );
+          } else if ( strtolower($relationship->from_object) === "product" ) {
+            $i = 0;
+            foreach( $products as $product ) {
+              $values = $this->get_values( $connections, $product );
+              $this->set_dependencies( $relationship->to_object, $values,
+              json_decode( $relationship->required_sf_objects ), $response_ids, $relationship->from_object, $i );
 
-              if ( intval($relationship->active) === 1 && !$response["success"] ) {
-                $is_success = false;
-                array_push( $error_message, $response["error_message"] );
-                break; // no need to continue
+              if ( !empty( $values ) ) {
+                $response = $this->send_to_salesforce( $relationship->to_object, $values,
+                json_decode( $relationship->unique_sf_fields ), $response_ids, $i, intval($relationship->active) === 2 );
+
+                if ( intval($relationship->active) === 1 && !$response["success"] ) {
+                  $is_success = false;
+                  array_push( $error_message, $response["error_message"] );
+                  break; // no need to continue
+                }
               }
+              $i++;
             }
-            $i++;
-          }
-        }
-      } // for each relationship
+          } else if ( strtolower($relationship->from_object) === "order_item" ) {
+            $i = 0;
+            $order_items = $order->get_items();
+            foreach( $order_items as $item ) {
+              $this_item = new NWSI_Order_Item_Model($item);
+              
+              // only process order items with > £0.00 value
+              if ($this_item->data["total"] !== "0.00") {
 
-      // handle order sync response
-      $this->handle_order_sync_response( $order_id, $is_success, $error_message );
+                $values = $this->get_values( $connections, $this_item );
+                $this->set_dependencies( $relationship->to_object, $values,
+                json_decode( $relationship->required_sf_objects ), $response_ids, $relationship->from_object, $i );
+
+                if ( !empty( $values ) ) {
+                  $response = $this->send_to_salesforce( $relationship->to_object, $values,
+                  json_decode( $relationship->unique_sf_fields ), $response_ids, $i, intval($relationship->active) === 2 );
+
+                  if ( intval($relationship->active) === 1 && !$response["success"] ) {
+                    $is_success = false;
+                    array_push( $error_message, $response["error_message"] );
+                    break; // no need to continue
+                  }
+                }
+              }
+              $i++;
+            }
+          }
+        } // for each relationship
+
+        // handle order sync response
+        $this->handle_order_sync_response( $order_id, $is_success, $error_message );
+      }
     }
 
     /**
