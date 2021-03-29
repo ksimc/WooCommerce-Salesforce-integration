@@ -324,9 +324,9 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
           if ($connection->to === "Payment_Method__c") {
             $method = $item->get("payment_method");
             if ($method == "paypal") {
-              $value = "Online - Paypal";
+              $value = "Paypal";
             } elseif ($method == "stripe") {
-              $value = 'Online - Stripe';
+              $value = 'Stripe';
             }
           }
         }
