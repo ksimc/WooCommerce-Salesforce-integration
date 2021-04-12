@@ -79,7 +79,7 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
       $products = $this->get_products_from_order( $order );
 
       // before proceeding, check that the order has a value
-      if ($order->data["total"] !== "0.00")
+      if ($order->get_data()["total"] !== "0.00")
       {
         foreach( $relationships as $relationship ) {
           // get relationship connections
@@ -136,7 +136,7 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
               $this_item = new NWSI_Order_Item_Model($item);
               
               // only process order items with > £0.00 value
-              if ($this_item->data["total"] !== "0.00") {
+              if ($order->get_data()["total"] !== "0.00") {
 
                 $values = $this->get_values( $connections, $this_item );
                 $this->set_dependencies( $relationship->to_object, $values,

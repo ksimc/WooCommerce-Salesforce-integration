@@ -21,7 +21,7 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
     private $api_version = "v37.0";
 
     public function get_existing_object( string $name, array $values, array $unique_sf_fields = array(), bool $no_error_handling = false ) {
-      $response["success"] = false;
+      $response["success"] = true;
       // check if object with given unique_sf_field values exists
       if ( !empty( $unique_sf_fields ) ) {
         $get_values = array();
@@ -34,9 +34,9 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
         if ( !empty( $get_values ) ) {
           $get_object_response = $this->get_object( $name, $get_values );
           // if object with the same values of unique field/s exists, return its ID
-          //if ( $get_object_response["success"] ) {
+          if ( $get_object_response["success"] ) {
             return $get_object_response;
-          //}
+          }
         }
       }
 
@@ -106,6 +106,7 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
         $response["id"]      = $sf_response["records"][0]["Id"];
       } else {
         $response = $this->set_response_error_message( $sf_response );
+        $response["error_message"] = $response["error_message"] . "||" . $this->debug_string_backtrace();
       }
 
       return $response;
@@ -151,6 +152,7 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
         $response["id"]      = $sf_response["records"][0]["Id"];
       } else {
         $response = $this->set_response_error_message( $sf_response );
+        $response["error_message"] = $response["error_message"] . "||" . $this->debug_string_backtrace();
       }
       return $response;
     }
@@ -207,7 +209,7 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
         $response["error_message"] = $sf_response[0]["message"];
       } else {
         $response["error_code"]    = "UNKNOWN";
-        $response["error_message"] = "Unknown error occurred.";
+        $response["error_message"] = "Unknown error occurred. " . str_replace(PHP_EOL, '', print_r($sf_response, true));
       }
       return $response;
     }
@@ -379,6 +381,21 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
          $this->get_response( $url_delete, true, "delete" );
        }
 
-     }
+    }
+
+    function debug_string_backtrace() {
+      ob_start();
+      debug_print_backtrace(0,7);
+      $trace = ob_get_contents();
+      ob_end_clean();
+
+      // replace new lines with ''
+      $trace = str_replace('\n', '', $trace);
+
+      // ignore path
+      $trace = str_replace(dirname(__FILE__, 4), '', $trace);
+
+      return $trace;
+    }
   }
 }
