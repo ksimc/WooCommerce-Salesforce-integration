@@ -37,7 +37,7 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
     */
     public function get_property_keys() {
       $data      = $this->get_data();
-      $data_keys = array_merge( array( 'id', 'WC_order_url' ), $this->get_data_keys());
+      $data_keys = array_merge( array( 'id', 'WC_order_url', 'WC_order_id_string' ), $this->get_data_keys());
 
       // keys which hold subarrays in $data
       $parent_keys = array( "shipping", "billing" );
@@ -100,6 +100,10 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
 
       if ($property_name === "WC_order_url") {
         $value = admin_url("post.php?post=".$this->get_id()."&action=edit", "https");
+      }
+
+      if ($property_name === "WC_order_id_string") {
+        $value = "#".$this->get_id();
       }
 
       if ( has_filter( "nwsi_get_order_property_key_" . $property_name ) ) {
