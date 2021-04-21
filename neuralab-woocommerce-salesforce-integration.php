@@ -109,7 +109,8 @@ if ( nwsi_is_woocommerce_active() ) {
 
         $this->worker = new NWSI_Salesforce_Worker();
         // add_action( "woocommerce_checkout_order_processed", array( $this, "process_order" ), 10, 1 );
-        add_action( "woocommerce_thankyou", array( $this, "process_order" ), 90, 1 );
+        //add_action( "woocommerce_thankyou", array( $this, "process_order" ), 90, 1 );
+        add_action( "woocommerce_payment_complete", array( $this, "process_order" ), 90, 1 );
 
         $this->hujjat_account_async_worker = new HUJJAT_Account_Async_Worker();
       }
