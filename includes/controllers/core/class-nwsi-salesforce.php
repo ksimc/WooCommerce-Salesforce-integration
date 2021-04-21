@@ -22,7 +22,7 @@ if ( !class_exists( "NWSI_Salesforce" ) ) {
       $response = null;
       $args = array(
         "httpversion" => "1.0",
-        "timeout"     => 5,
+        "timeout"     => 10,
         "redirection" => 5,
         "blocking"    => true,
         "cookies"     => array()
